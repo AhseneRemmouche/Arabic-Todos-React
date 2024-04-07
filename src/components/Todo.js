@@ -13,18 +13,9 @@ import TextField from '@mui/material/TextField';
 import { useContext, useState } from 'react';
 import { TodosContext } from '../contexts/todosContext';
 
-// Modal import dependencies
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogContentText from '@mui/material/DialogContentText';
-import DialogTitle from '@mui/material/DialogTitle';
-import Button from '@mui/material/Button';
-
-export default function Todo({ todo }) {
+export default function Todo({ todo, showDeleteDialog, showEditDialog }) {
     const { todos, setTodos } = useContext(TodosContext);
-    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
-    const [openEditDialog, setOpenEditDialog] = useState(false);
+
     const [titleInput, setTitleInput] = useState(todo.title);
     const [descriptionInput, setDescriptionInput] = useState(todo.description);
 
@@ -43,122 +34,14 @@ export default function Todo({ todo }) {
         localStorage.setItem('todos', JSON.stringify(updatedTodos));
     }
 
-    function handleDeleteTodo() {
-        const updatedTodos = todos.filter((t) => t.id !== todo.id);
-        setTodos(updatedTodos);
-        localStorage.setItem('todos', JSON.stringify(updatedTodos));
-        //setOpenDeleteDialog(false);
-    }
-
-    function handleEditTodo() {
-        setTodos(() => {
-            return todos.map((t) => {
-                if (t.id === todo.id) {
-                    return {
-                        ...t,
-                        title: titleInput,
-                        description: descriptionInput,
-                    };
-                } else {
-                    return t;
-                }
-            });
-        });
-        localStorage.setItem('todos', JSON.stringify(todos));
-        setOpenEditDialog(false);
-    }
-
     function handleOpenDeleteDialog() {
-        setOpenDeleteDialog(true);
-    }
-
-    function handleCloseDeleteDialog() {
-        setOpenDeleteDialog(false);
+        showDeleteDialog(todo);
     }
     function handleOpenEditDialog() {
-        setOpenEditDialog(true);
+        showEditDialog(todo);
     }
-
-    function handleCloseEditDialog() {
-        setOpenEditDialog(false);
-    }
-
     return (
         <>
-            {/*  Delete Modal  */}
-            <Dialog
-                style={{ direction: 'rtl' }}
-                open={openDeleteDialog}
-                onClose={handleCloseDeleteDialog}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description">
-                <DialogTitle id="alert-dialog-title">
-                    هل أنت متأكد من حذف هاذه المهمة؟
-                </DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        عند حذف المهمة سوف تفقد جميع التفاصيل الخاصة بها, وسوف
-                        لا يمكنك التراجع عن هذه الإجراء
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseDeleteDialog}>إغلاق</Button>
-                    <Button
-                        onClick={handleDeleteTodo}
-                        autoFocus>
-                        نعم, إحدف المهمة
-                    </Button>
-                </DialogActions>
-            </Dialog>
-            {/* End Delete Modal */}
-
-            {/* Update Modal */}
-            <Dialog
-                style={{ direction: 'rtl', width: '100%' }}
-                open={openEditDialog}
-                onClose={handleCloseEditDialog}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description">
-                <DialogTitle id="alert-dialog-title">تعديل المهمة</DialogTitle>
-                <DialogContent style={{ width: '520px' }}>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="name"
-                        name="titleInput"
-                        label="العنوان"
-                        type="text"
-                        fullWidth
-                        variant="standard"
-                        value={titleInput}
-                        onChange={(e) => setTitleInput(e.target.value)}
-                    />
-                </DialogContent>
-                <DialogContent>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="name"
-                        name="descriptionInput"
-                        label="التفاصيل"
-                        type="text"
-                        fullWidth
-                        variant="standard"
-                        value={descriptionInput}
-                        onChange={(e) => setDescriptionInput(e.target.value)}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseEditDialog}>إلغاء</Button>
-                    <Button
-                        onClick={handleEditTodo}
-                        autoFocus>
-                        تعديل المهمة
-                    </Button>
-                </DialogActions>
-            </Dialog>
-            {/* End Update Modal */}
-
             <Card
                 //style={{ backgroundColor: 'primary' }}
                 className="card"

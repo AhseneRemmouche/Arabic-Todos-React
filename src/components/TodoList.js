@@ -9,6 +9,13 @@ import Grid from '@mui/material/Unstable_Grid2';
 import TextField from '@mui/material/TextField';
 import { v4 as uuidv4 } from 'uuid';
 
+// Modal import dependencies
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
+
 import { useState, useContext, useEffect, useMemo } from 'react';
 import { TodosContext } from '../contexts/todosContext';
 
@@ -21,31 +28,45 @@ export default function TodoList() {
     const [titleInput, setTitleInput] = useState('');
     const [descriptionInput, setDescriptionInput] = useState('');
     const [displayedTodosType, setDisplayedTodosType] = useState('all');
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [openEditDialog, setOpenEditDialog] = useState(false);
+    const [todoFromDeleteBtn, setTodoFromDeleteBtn] = useState({});
+    const [todoFromEditBtn, setTodoFromEditBtn] = useState({});
+    const [editDialogTitleInput, setEditDialogTitleInput] = useState(
+        todoFromEditBtn.title
+    );
+    const [editDialogDescriptionInput, setEditDialogDescriptionInput] =
+        useState(todoFromEditBtn.description);
 
     const { todos, setTodos } = useContext(TodosContext);
 
     // filetration arrays
     const unCompletedTodos = useMemo(() => {
-        todos.filter((t) => {
+        return todos.filter((t) => {
             return !t.isCompleted;
         });
     }, [todos]);
 
     const completedTodos = useMemo(() => {
-        todos.filter((t) => t.isCompleted);
+        return todos.filter((t) => t.isCompleted);
     }, [todos]);
 
-    let todosTobeRandered = todos;
+    let todosTobeRendered = todos;
     if (displayedTodosType === 'completed') {
-        todosTobeRandered = completedTodos;
+        todosTobeRendered = completedTodos;
     } else if (displayedTodosType === 'uncompleted') {
-        todosTobeRandered = unCompletedTodos;
+        todosTobeRendered = unCompletedTodos;
+    } else {
+        todosTobeRendered = todos;
     }
-    const todoList = todosTobeRandered.map((todo) => {
+
+    const todoList = todosTobeRendered.map((todo) => {
         return (
             <Todo
                 key={todo.id}
                 todo={todo}
+                showDeleteDialog={showDeleteDialog}
+                showEditDialog={showEditDialog}
             />
         );
     });
@@ -56,6 +77,51 @@ export default function TodoList() {
             setTodos(storedTodos);
         }
     }, []);
+
+    function handleDeleteTodo() {
+        const updatedTodos = todos.filter((t) => t.id !== todoFromDeleteBtn.id);
+        setTodos(updatedTodos);
+        localStorage.setItem('todos', JSON.stringify(updatedTodos));
+        setOpenDeleteDialog(false);
+    }
+
+    function showDeleteDialog(t) {
+        setOpenDeleteDialog(true);
+        setTodoFromDeleteBtn(t);
+    }
+
+    function showEditDialog(t) {
+        setTodoFromEditBtn(t);
+        setEditDialogTitleInput(t.title)
+        setEditDialogDescriptionInput(t.description)
+        setOpenEditDialog(true);
+    }
+
+    function handleCloseEditDialog() {
+        setOpenEditDialog(false);
+    }
+
+    function handleEditTodo() {
+        const updatedTodos = todos.map((todo) => {
+            if (todo.id === todoFromEditBtn.id) {
+                return {
+                    ...todo,
+                    title: editDialogTitleInput,
+                    description: editDialogDescriptionInput,
+                };
+            } else {
+                return todo;
+            }
+        });
+        setTodos(updatedTodos);
+        localStorage.setItem('todos', JSON.stringify(todos));
+        setOpenEditDialog(false);
+      
+    }
+   
+    function handleCloseDeleteDialog() {
+        setOpenDeleteDialog(false);
+    }
 
     function changeDisplayedType(event) {
         setDisplayedTodosType(event.target.value);
@@ -78,6 +144,82 @@ export default function TodoList() {
 
     return (
         <>
+            {/*  Delete Modal  */}
+            <Dialog
+                style={{ direction: 'rtl' }}
+                open={openDeleteDialog}
+                onClose={handleCloseDeleteDialog}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description">
+                <DialogTitle id="alert-dialog-title">
+                    هل أنت متأكد من حذف هاذه المهمة؟
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        عند حذف المهمة سوف تفقد جميع التفاصيل الخاصة بها, وسوف
+                        لا يمكنك التراجع عن هذه الإجراء
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseDeleteDialog}>إغلاق</Button>
+                    <Button
+                        onClick={handleDeleteTodo}
+                        autoFocus>
+                        نعم, إحدف المهمة
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            {/* End Delete Modal */}
+
+            {/* Update Modal */}
+            <Dialog
+                style={{ direction: 'rtl', width: '100%' }}
+                open={openEditDialog}
+                onClose={handleCloseEditDialog}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description">
+                <DialogTitle id="alert-dialog-title">تعديل المهمة</DialogTitle>
+                <DialogContent style={{ width: '520px' }}>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="name"
+                        name="titleInput"
+                        label="العنوان"
+                        type="text"
+                        fullWidth
+                        variant="standard"
+                        value={editDialogTitleInput}
+                        onChange={(e) =>
+                            setEditDialogTitleInput(e.target.value)
+                        }
+                    />
+                </DialogContent>
+                <DialogContent>
+                    <TextField
+                        autoFocus
+                        margin="dense"
+                        id="name"
+                        name="descriptionInput"
+                        label="التفاصيل"
+                        type="text"
+                        fullWidth
+                        variant="standard"
+                        value={editDialogDescriptionInput}
+                        onChange={(e) => setEditDialogDescriptionInput(e.target.value)}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseEditDialog}>إلغاء</Button>
+                    <Button
+                        onClick={handleEditTodo}
+                        autoFocus>
+                        تعديل المهمة
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            {/* End Update Modal */}
+
             <Container maxWidth="sm">
                 <Card
                     sx={{ minWidth: 275 }}
