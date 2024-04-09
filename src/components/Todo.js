@@ -12,23 +12,30 @@ import TextField from '@mui/material/TextField';
 
 import { useContext, useState } from 'react';
 import { TodosContext } from '../contexts/todosContext';
+import { CustomSnackBarContext } from '../contexts/customSnackBarContext';
 
 export default function Todo({ todo, showDeleteDialog, showEditDialog }) {
     const { todos, setTodos } = useContext(TodosContext);
 
-    const [titleInput, setTitleInput] = useState(todo.title);
-    const [descriptionInput, setDescriptionInput] = useState(todo.description);
+    const {
+        showHideCustomSnackbar,
+        openCustomSnackBar,
+        setOpenCustomSnackBar,
+    } = useContext(CustomSnackBarContext);
 
     function handleCheck() {
         const updatedTodos = todos.map((t) => {
             if (t.id === todo.id) {
-                return {
-                    ...t,
-                    isCompleted: !t.isCompleted,
-                };
-            } else {
-                return t;
+                t.isCompleted = !t.isCompleted;
             }
+
+            if (todo.isCompleted) {
+                showHideCustomSnackbar('تمت الإظافة إلى المنجز', 'success');
+            } else {
+                showHideCustomSnackbar('تمت الإظافة إلى غير المنجز', 'success');
+            }
+
+            return t;
         });
         setTodos(updatedTodos);
         localStorage.setItem('todos', JSON.stringify(updatedTodos));

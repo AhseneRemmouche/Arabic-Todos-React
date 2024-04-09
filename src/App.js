@@ -4,6 +4,9 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { v4 as uuidv4 } from 'uuid';
 import { useState } from 'react';
 import { TodosContext } from './contexts/todosContext';
+import CustomSnackbar from './components/CustomSnackBar';
+import CustomSnackBarProvider from './contexts/customSnackBarContext';
+
 const theme = createTheme({
     typography: {
         fontFamily: ['Alexandria'],
@@ -34,19 +37,25 @@ const initialTodos = [
         isCompleted: false,
     },
 ];
+
+//Show and Hide custom snackbar
+
 function App() {
     const [todos, setTodos] = useState(initialTodos);
+        
     return (
         <ThemeProvider theme={theme}>
-            <div
-                className="App"
-                style={{
-                    direction: 'rtl',
-                }}>
-                <TodosContext.Provider value={{ todos, setTodos }}>
-                    <TodoList />
-                </TodosContext.Provider>
-            </div>
+            <CustomSnackBarProvider>
+                <div
+                    className="App"
+                    style={{
+                        direction: 'rtl',
+                    }}>
+                    <TodosContext.Provider value={{ todos, setTodos }}>
+                        <TodoList />
+                    </TodosContext.Provider>
+                </div>
+            </CustomSnackBarProvider>
         </ThemeProvider>
     );
 }

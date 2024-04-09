@@ -18,6 +18,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 
 import { useState, useContext, useEffect, useMemo } from 'react';
 import { TodosContext } from '../contexts/todosContext';
+import { CustomSnackBarContext } from '../contexts/customSnackBarContext';
 
 // toggle buttons dependence
 import ToggleButton from '@mui/material/ToggleButton';
@@ -39,6 +40,11 @@ export default function TodoList() {
         useState(todoFromEditBtn.description);
 
     const { todos, setTodos } = useContext(TodosContext);
+    const {
+        showHideCustomSnackbar,
+        openCustomSnackBar,
+        setOpenCustomSnackBar,
+    } = useContext(CustomSnackBarContext);
 
     // filetration arrays
     const unCompletedTodos = useMemo(() => {
@@ -83,6 +89,8 @@ export default function TodoList() {
         setTodos(updatedTodos);
         localStorage.setItem('todos', JSON.stringify(updatedTodos));
         setOpenDeleteDialog(false);
+
+        showHideCustomSnackbar('تم الحذف بنجاح', 'error');
     }
 
     function showDeleteDialog(t) {
@@ -92,8 +100,8 @@ export default function TodoList() {
 
     function showEditDialog(t) {
         setTodoFromEditBtn(t);
-        setEditDialogTitleInput(t.title)
-        setEditDialogDescriptionInput(t.description)
+        setEditDialogTitleInput(t.title);
+        setEditDialogDescriptionInput(t.description);
         setOpenEditDialog(true);
     }
 
@@ -116,9 +124,9 @@ export default function TodoList() {
         setTodos(updatedTodos);
         localStorage.setItem('todos', JSON.stringify(todos));
         setOpenEditDialog(false);
-      
+        showHideCustomSnackbar('تم التعديل بنجاح', 'success');
     }
-   
+
     function handleCloseDeleteDialog() {
         setOpenDeleteDialog(false);
     }
@@ -126,7 +134,7 @@ export default function TodoList() {
     function changeDisplayedType(event) {
         setDisplayedTodosType(event.target.value);
     }
-
+    // Add new todo
     function handleAddClick() {
         // add new todo to the list
         const newTodo = {
@@ -135,11 +143,11 @@ export default function TodoList() {
             description: descriptionInput,
             isCompleted: false,
         };
-
         setTodos([...todos, newTodo]);
         setTitleInput('');
-        localStorage.setItem('todos', JSON.stringify([...todos, newTodo]));
         setDescriptionInput('');
+        localStorage.setItem('todos', JSON.stringify([...todos, newTodo]));
+        showHideCustomSnackbar('تمت الإضافة بنجاح', 'success');
     }
 
     return (
@@ -206,7 +214,9 @@ export default function TodoList() {
                         fullWidth
                         variant="standard"
                         value={editDialogDescriptionInput}
-                        onChange={(e) => setEditDialogDescriptionInput(e.target.value)}
+                        onChange={(e) =>
+                            setEditDialogDescriptionInput(e.target.value)
+                        }
                     />
                 </DialogContent>
                 <DialogActions>
