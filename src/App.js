@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { TodosContext } from './contexts/todosContext';
 import CustomSnackbar from './components/CustomSnackBar';
 import CustomSnackBarProvider from './contexts/customSnackBarContext';
+import TodosProvider from './contexts/todosContext';
 
 const theme = createTheme({
     typography: {
@@ -42,20 +43,20 @@ const initialTodos = [
 
 function App() {
     const [todos, setTodos] = useState(initialTodos);
-        
+
     return (
         <ThemeProvider theme={theme}>
-            <CustomSnackBarProvider>
-                <div
-                    className="App"
-                    style={{
-                        direction: 'rtl',
-                    }}>
-                    <TodosContext.Provider value={{ todos, setTodos }}>
+            <TodosProvider>
+                <CustomSnackBarProvider>
+                    <div
+                        className="App"
+                        style={{
+                            direction: 'rtl',
+                        }}>
                         <TodoList />
-                    </TodosContext.Provider>
-                </div>
-            </CustomSnackBarProvider>
+                    </div>
+                </CustomSnackBarProvider>
+            </TodosProvider>
         </ThemeProvider>
     );
 }

@@ -9,13 +9,13 @@ import ModeEditOutlineOutlinedIcon from '@mui/icons-material/ModeEditOutlineOutl
 import DeleteOutlinedIcon from '@mui/icons-material/DeleteOutlined';
 import CheckOutlinedIcon from '@mui/icons-material/CheckOutlined';
 import TextField from '@mui/material/TextField';
+import {useTodos} from "../contexts/todosContext";
+import { useContext } from 'react';
 
-import { useContext, useState } from 'react';
-import { TodosContext } from '../contexts/todosContext';
 import { CustomSnackBarContext } from '../contexts/customSnackBarContext';
 
 export default function Todo({ todo, showDeleteDialog, showEditDialog }) {
-    const { todos, setTodos } = useContext(TodosContext);
+    const { todos, dispatch } = useTodos();
 
     const {
         showHideCustomSnackbar,
@@ -24,21 +24,9 @@ export default function Todo({ todo, showDeleteDialog, showEditDialog }) {
     } = useContext(CustomSnackBarContext);
 
     function handleCheck() {
-        const updatedTodos = todos.map((t) => {
-            if (t.id === todo.id) {
-                t.isCompleted = !t.isCompleted;
-            }
 
-            if (todo.isCompleted) {
-                showHideCustomSnackbar('تمت الإظافة إلى المنجز', 'success');
-            } else {
-                showHideCustomSnackbar('تمت الإظافة إلى غير المنجز', 'success');
-            }
-
-            return t;
-        });
-        setTodos(updatedTodos);
-        localStorage.setItem('todos', JSON.stringify(updatedTodos));
+        dispatch({ type: 'toggledCompleted', payload: todo });
+      
     }
 
     function handleOpenDeleteDialog() {

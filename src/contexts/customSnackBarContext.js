@@ -1,4 +1,4 @@
-import { createContext, useState } from 'react';
+import { createContext, useState, useContext } from 'react';
 import CustomSnackbar from '../components/CustomSnackBar';
 
 export const CustomSnackBarContext = createContext({});
@@ -35,3 +35,7 @@ export default function CustomSnackBarProvider({ children }) {
         </CustomSnackBarContext.Provider>
     );
 }
+
+export const useCustomSnackBar = () => {
+    return useContext(CustomSnackBarContext);
+};

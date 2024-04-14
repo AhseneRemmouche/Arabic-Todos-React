@@ -16,8 +16,10 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 
-import { useState, useContext, useEffect, useMemo } from 'react';
-import { TodosContext } from '../contexts/todosContext';
+import { useState, useContext, useEffect, useMemo, useReducer } from 'react';
+import { useTodos } from '../contexts/todosContext';
+import { useCustomSnackBar } from '../contexts/customSnackBarContext';
+import todosReducer from '../reducers/todosReducer';
 import { CustomSnackBarContext } from '../contexts/customSnackBarContext';
 
 // toggle buttons dependence
@@ -26,6 +28,10 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Todo from './Todo';
 
 export default function TodoList() {
+    const {todos,dispatch} = useTodos();
+   const { showHideCustomSnackbar } = useCustomSnackBar();
+    
+
     const [titleInput, setTitleInput] = useState('');
     const [descriptionInput, setDescriptionInput] = useState('');
     const [displayedTodosType, setDisplayedTodosType] = useState('all');
@@ -39,12 +45,11 @@ export default function TodoList() {
     const [editDialogDescriptionInput, setEditDialogDescriptionInput] =
         useState(todoFromEditBtn.description);
 
-    const { todos, setTodos } = useContext(TodosContext);
-    const {
-        showHideCustomSnackbar,
-        openCustomSnackBar,
-        setOpenCustomSnackBar,
-    } = useContext(CustomSnackBarContext);
+    // const {
+    //     showHideCustomSnackbar,
+    //     openCustomSnackBar,
+    //     setOpenCustomSnackBar,
+    // } = useContext(CustomSnackBarContext);
 
     // filetration arrays
     const unCompletedTodos = useMemo(() => {
@@ -78,20 +83,8 @@ export default function TodoList() {
     });
 
     useEffect(() => {
-        const storedTodos = JSON.parse(localStorage.getItem('todos')) ?? [];
-        if (storedTodos) {
-            setTodos(storedTodos);
-        }
+        dispatch({ type: 'get' });
     }, []);
-
-    function handleDeleteTodo() {
-        const updatedTodos = todos.filter((t) => t.id !== todoFromDeleteBtn.id);
-        setTodos(updatedTodos);
-        localStorage.setItem('todos', JSON.stringify(updatedTodos));
-        setOpenDeleteDialog(false);
-
-        showHideCustomSnackbar('تم الحذف بنجاح', 'error');
-    }
 
     function showDeleteDialog(t) {
         setOpenDeleteDialog(true);
@@ -108,23 +101,40 @@ export default function TodoList() {
     function handleCloseEditDialog() {
         setOpenEditDialog(false);
     }
+    function handleDeleteTodo() {
+        dispatch({
+            type: 'deleteTodo',
+            payload: {
+                id: todoFromDeleteBtn.id,
+            },
+        });
+
+        setOpenDeleteDialog(false);
+        showHideCustomSnackbar('تم الحذف بنجاح', 'error');
+    }
 
     function handleEditTodo() {
         const updatedTodos = todos.map((todo) => {
-            if (todo.id === todoFromEditBtn.id) {
-                return {
-                    ...todo,
+            dispatch({
+                type: 'editTodo',
+                payload: {
+                    id: todoFromEditBtn.id,
                     title: editDialogTitleInput,
                     description: editDialogDescriptionInput,
-                };
-            } else {
-                return todo;
-            }
+                },
+            });
         });
-        setTodos(updatedTodos);
-        localStorage.setItem('todos', JSON.stringify(todos));
         setOpenEditDialog(false);
         showHideCustomSnackbar('تم التعديل بنجاح', 'success');
+    }
+    function handleAddClick() {
+        dispatch({
+            type: 'addTodo',
+            payload: { title: titleInput, description: descriptionInput },
+        });
+        setTitleInput('');
+        setDescriptionInput('');
+        showHideCustomSnackbar('تمت الإضافة بنجاح', 'success');
     }
 
     function handleCloseDeleteDialog() {
@@ -134,21 +144,7 @@ export default function TodoList() {
     function changeDisplayedType(event) {
         setDisplayedTodosType(event.target.value);
     }
-    // Add new todo
-    function handleAddClick() {
-        // add new todo to the list
-        const newTodo = {
-            id: uuidv4(),
-            title: titleInput,
-            description: descriptionInput,
-            isCompleted: false,
-        };
-        setTodos([...todos, newTodo]);
-        setTitleInput('');
-        setDescriptionInput('');
-        localStorage.setItem('todos', JSON.stringify([...todos, newTodo]));
-        showHideCustomSnackbar('تمت الإضافة بنجاح', 'success');
-    }
+    // add new todo to the list of todos
 
     return (
         <>
